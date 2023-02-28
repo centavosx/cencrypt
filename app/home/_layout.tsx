@@ -14,7 +14,10 @@ export default function TabLayout() {
         tabBarActiveTintColor: 'black',
         tabBarInactiveTintColor: '#999999',
         headerLeft: () => (
-          <Image source={logo} style={{ height: 32, width: 32 }} />
+          <Image
+            source={logo}
+            style={{ height: 32, width: 32, position: 'relative', left: 10 }}
+          />
         ),
         headerLeftLabelVisible: true,
         headerLeftContainerStyle: { marginLeft: 10 },
@@ -22,7 +25,10 @@ export default function TabLayout() {
         headerBackgroundContainerStyle: { backgroundColor: '#D9D9D9' },
         headerTintColor: 'black',
         headerTitle: 'Cencrypt',
-        headerTitleStyle: { fontWeight: 'bold', marginLeft: -10 },
+        headerTitleStyle: {
+          fontWeight: 'bold',
+          width: '100%',
+        },
         tabBarStyle: {
           backgroundColor: '#D9D9D9',
         },

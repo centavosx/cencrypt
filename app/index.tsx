@@ -7,7 +7,14 @@ import { eyeHidden, eyeVisible } from '../assets/icons'
 import { StyledButton } from '../components/StyledButton'
 import { StyledInput } from '../components/StyledInput'
 import { useAppDispatch } from '../redux/dispatch'
-import { changePassword, selectPassword } from '../redux/slices/passwordSlice'
+
+import {
+  changePassword,
+  selectPassword,
+  addTries,
+  resetTries,
+  selectNumberOfTries,
+} from '../redux/slices/passwordSlice'
 import * as Yup from 'yup'
 import { useSelector } from 'react-redux'
 import { compare, hashValue } from '../lib'
@@ -22,6 +29,7 @@ export default function InAppScreen() {
   const { isLoggedIn, setIsLoggedIn } = useContext(UserContext)
   const dispatch = useAppDispatch()
   const password = useSelector(selectPassword)
+  const tries = useSelector(selectNumberOfTries)
   const [display, setDisplay] = useState(false)
   const [displayConfirm, setDisplayConfirm] = useState(false)
 
@@ -42,11 +50,13 @@ export default function InAppScreen() {
                 test: async function (value) {
                   if (value && value.length > 0) {
                     const check = compare(value, password)
-                    if (!check)
+                    if (!check) {
+                      dispatch(addTries(1))
                       return this.createError({
                         message: 'Password is invalid',
                         path: 'password',
                       })
+                    }
                   }
                   return true
                 },
@@ -76,12 +86,26 @@ export default function InAppScreen() {
       >
         Enter In App Password
       </Text>
+      {!!tries && (
+        <Text
+          style={{
+            fontSize: 10,
+            fontWeight: 'bold',
+            marginBottom: 8,
+            color: 'red',
+            textTransform: 'uppercase',
+          }}
+        >
+          Number of tries: {tries}, Maximum:3
+        </Text>
+      )}
       <Body>
         {!!password ? (
           <Formik<{ password: string }>
             initialValues={{ password: '' }}
             onSubmit={async (_, { setSubmitting }) => {
               setSubmitting(true)
+              dispatch(resetTries())
               setIsLoggedIn(true)
               setSubmitting(false)
             }}
@@ -122,6 +146,7 @@ export default function InAppScreen() {
             onSubmit={async (values, { setSubmitting }) => {
               setSubmitting(true)
               const hashedValue = hashValue(values.password)
+              dispatch(resetTries())
               dispatch(changePassword(hashedValue))
               setIsLoggedIn(true)
               setSubmitting(false)

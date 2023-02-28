@@ -16,16 +16,20 @@ export const encryptText = (value: string, pKey: string) => {
 }
 
 export const decryptText = (value: string, pKey: string) => {
-  const salt = CryptoJS.enc.Hex.parse(value.substring(0, 32))
-  const iv = CryptoJS.enc.Hex.parse(value.substring(32, 64))
-  const encrypted = value.substring(64)
+  try {
+    const salt = CryptoJS.enc.Hex.parse(value.substring(0, 32))
+    const iv = CryptoJS.enc.Hex.parse(value.substring(32, 64))
+    const encrypted = value.substring(64)
 
-  const key = CryptoJS.PBKDF2(pKey, salt, {
-    keySize: 128 / 32,
-  })
+    const key = CryptoJS.PBKDF2(pKey, salt, {
+      keySize: 128 / 32,
+    })
 
-  const decrypted = CryptoJS.AES.decrypt(encrypted, key, { iv: iv })
-  return decrypted.toString(CryptoJS.enc.Utf8)
+    const decrypted = CryptoJS.AES.decrypt(encrypted, key, { iv: iv })
+    return decrypted.toString(CryptoJS.enc.Utf8)
+  } catch {
+    return null
+  }
 }
 
 export const hashValue = (value: string) => {

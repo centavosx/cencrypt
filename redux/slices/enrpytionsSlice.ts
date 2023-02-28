@@ -2,10 +2,10 @@ import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from '../store'
 
-interface EncrpytState {
+export interface EncrpytState {
   id: string
+  user: string
   name: string
-  key: string
   value: string
 }
 
@@ -27,19 +27,19 @@ export const encrpytSlice = createSlice({
       state,
       action: PayloadAction<{
         id: string
+        user?: string
         name?: string
-        key?: string
         value?: string
       }>
     ) => {
-      const { id, name, key, value } = action.payload
+      const { id, name, user, value } = action.payload
 
       state = state.map((v) => {
         if (v.id !== id) return v
         return {
           ...v,
+          user: user ?? v.user,
           name: name ?? v.name,
-          key: key ?? v.key,
           value: value ?? v.value,
         }
       })
@@ -54,5 +54,7 @@ export const { addEncrypt, encryptRemoveById, encryptUpdate } =
 
 // Other code such as selectors can use the imported `RootState` type
 export const selectEncrypt = (state: RootState) => state.encryptValues
+export const selectEncryptById = (state: RootState, id: string) =>
+  state.encryptValues.find((v) => v.id === id)
 
 export default encrpytSlice.reducer

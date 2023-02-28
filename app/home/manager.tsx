@@ -1,39 +1,36 @@
-import React, { useEffect } from 'react'
-import { useRouter } from 'expo-router'
+import React from 'react'
+import { useRouter, Link } from 'expo-router'
 import { Router } from '../../types'
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Image,
-  FlatList,
-  View,
-  BackHandler,
-} from 'react-native'
+import { Text, TouchableOpacity, Image, FlatList, View } from 'react-native'
 import styled from 'styled-components/native'
 import { add } from '../../assets/icons'
 import { logo } from '../../assets/logo'
+import { useSelector } from 'react-redux'
+import { selectEncrypt } from '../../redux/slices/enrpytionsSlice'
 
 export default function PasswordScreen() {
+  const encrypted = useSelector(selectEncrypt)
   const navigation = useRouter()
 
   return (
     <Container>
       <FlatList
         contentContainerStyle={{ flexDirection: 'column', gap: 12 }}
-        data={['dwadwa', 'dwadw']}
-        renderItem={(v) => (
-          <Card>
+        data={encrypted}
+        renderItem={({ item }) => (
+          <Card
+            key={item.id}
+            onPress={() => navigation.push('/display?id=' + item.id)}
+          >
             <Image source={logo} />
             <CardBody>
-              <TextAndId text="Facebook" id="dwadwada-dwadaw-dwada-wdaw" />
-              <Text style={{ fontWeight: 'bold' }}>email</Text>
+              <TextAndId text={item.name} id={item.id} />
+              <Text style={{ fontWeight: 'bold' }}>{item.user}</Text>
             </CardBody>
           </Card>
         )}
       />
-      <AddEncrypt navigation={navigation} />
+      <AddEncrypt />
     </Container>
   )
 }
@@ -47,21 +44,23 @@ const TextAndId = ({ text, id }: { text: string; id: string }) => {
   )
 }
 
-const AddEncrypt = ({ navigation: { push } }: { navigation: Router }) => {
+const AddEncrypt = () => {
   return (
-    <TouchableOpacity onPress={() => push('/inapp')}>
-      <Image
-        source={add}
-        style={{
-          height: 45,
-          width: 45,
-          tintColor: 'white',
-          position: 'absolute',
-          bottom: 0,
-          zIndex: 1,
-          right: 0,
-        }}
-      />
+    <TouchableOpacity>
+      <Link href={'/add'}>
+        <Image
+          source={add}
+          style={{
+            height: 45,
+            width: 45,
+            tintColor: 'white',
+            position: 'absolute',
+            bottom: 0,
+            zIndex: 1,
+            right: 0,
+          }}
+        />
+      </Link>
     </TouchableOpacity>
   )
 }
