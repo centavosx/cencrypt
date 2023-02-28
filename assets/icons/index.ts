@@ -1,0 +1,5 @@
+export const encrypted = require('./encrypted.png')
+export const shield = require('./shield.png')
+export const add = require('./add.png')
+export const eyeHidden = require('./eye.png')
+export const eyeVisible = require('./eye-visible.png')
