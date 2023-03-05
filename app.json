@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "cencrypt",
+    "name": "Cencrypt",
     "slug": "cencrypt",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,6 +17,7 @@
       "supportsTablet": true
     },
     "android": {
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo/favicon.png",
         "backgroundColor": "#D9D9D9"
@@ -26,6 +27,11 @@
     "web": {
       "bundler": "metro",
       "favicon": "./assets/logo/logo.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f75267e7-b575-42d7-bac7-a9020836a0e0"
+      }
     }
   }
 }

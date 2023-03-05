@@ -37,7 +37,7 @@ export const UserProvider = ({
   }, [tries])
 
   if (banned && today < banned) {
-    const unixTime = (today.getTime() - new Date().getTime()) / 1000
+    const unixTime = (banned.getTime() - today.getTime()) / 1000
     return (
       <View
         style={{
@@ -49,8 +49,8 @@ export const UserProvider = ({
         }}
       >
         <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>
-          You have been restricted for {unixTime} seconds. Please try again
-          later
+          You are restricted for {parseInt(unixTime.toString())} seconds. Please
+          try again later
         </Text>
       </View>
     )

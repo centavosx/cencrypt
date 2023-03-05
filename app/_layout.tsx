@@ -14,6 +14,7 @@ import { persistor, store } from '../redux/store'
 import { PersistGate } from 'redux-persist/integration/react'
 import * as LocalAuthentication from 'expo-local-authentication'
 import { UserProvider } from '../context/user.context'
+import { usePreventScreenCapture } from 'expo-screen-capture'
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -25,9 +26,7 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
   })
-  const [authenticated, setAuthenticated] = useState<boolean | undefined>(
-    Platform.OS === 'web' ? true : undefined
-  )
+  const [authenticated, setAuthenticated] = useState<boolean>()
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
@@ -39,14 +38,16 @@ export default function RootLayout() {
     return true
   }
 
+  usePreventScreenCapture()
+
   useEffect(() => {
     const auth = async () => {
       const resp = await LocalAuthentication.authenticateAsync()
       setAuthenticated(resp.success)
     }
 
-    if (authenticated === undefined) auth()
-  }, [authenticated, setAuthenticated])
+    if (authenticated === undefined && loaded) auth()
+  }, [authenticated, loaded, setAuthenticated])
 
   if (authenticated === false) {
     exitApp()
@@ -57,11 +58,10 @@ export default function RootLayout() {
           width: '100%',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: 16,
         }}
       >
         <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>
-          You are not allowed allowed to access this app. Restart the app to try
+          You are not allowed allowed to open this app. Restart the app to try
           it again
         </Text>
       </View>
@@ -69,11 +69,10 @@ export default function RootLayout() {
   }
 
   if (!loaded || authenticated === undefined) return <SplashScreen />
-  if (loaded) return <RootLayoutNav />
+  return <RootLayoutNav />
 }
 
 function RootLayoutNav() {
-  const [login, setLogin] = useState(false)
   const colorScheme = useColorScheme()
   return (
     <Provider store={store}>
@@ -87,25 +86,35 @@ function RootLayoutNav() {
                 {!isLoggedIn ? (
                   <Stack.Screen name="index" options={{ headerShown: false }} />
                 ) : (
-                  <>
-                    <Stack.Screen
-                      name="home"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="add"
-                      options={{ presentation: 'modal' }}
-                    />
-                    <Stack.Screen
-                      name="display"
-                      options={{ presentation: 'modal' }}
-                    />
-                  </>
+                  <Stack.Screen name="home" options={{ headerShown: false }} />
                 )}
-                <Stack.Screen
-                  name="modal"
-                  options={{ presentation: 'modal' }}
-                />
+                {isLoggedIn && (
+                  <Stack.Screen
+                    name="add"
+                    options={{
+                      presentation: 'modal',
+                      headerTitle: 'Add new password',
+                    }}
+                  />
+                )}
+                {isLoggedIn && (
+                  <Stack.Screen
+                    name="display"
+                    options={{
+                      presentation: 'modal',
+                      headerTitle: 'Display password',
+                    }}
+                  />
+                )}
+                {isLoggedIn && (
+                  <Stack.Screen
+                    name="gen-settings"
+                    options={{
+                      presentation: 'modal',
+                      headerTitle: 'Generator Settings',
+                    }}
+                  />
+                )}
               </Stack>
             </ThemeProvider>
           )}

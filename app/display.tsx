@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react'
 import { useState } from 'react'
-import { View, SafeAreaView, Image, Text } from 'react-native'
+import { View, ScrollView, Image, Text } from 'react-native'
 import styled from 'styled-components/native'
 import { eyeHidden, eyeVisible } from '../assets/icons'
 import { StyledButton } from '../components/StyledButton'
@@ -9,9 +9,10 @@ import { useAppSelector } from '../redux/dispatch'
 
 import { selectEncryptById } from '../redux/slices/enrpytionsSlice'
 
-import { decryptText } from '../lib'
+import { copyToClipboard, decryptText } from '../lib'
 
 import { Redirect, useLocalSearchParams } from 'expo-router'
+import { TouchableOpacity } from 'react-native-gesture-handler'
 
 export default function DisplayScreen() {
   const { id } = useLocalSearchParams()
@@ -34,34 +35,41 @@ export default function DisplayScreen() {
 
   return (
     <Container>
-      <Text
-        style={{
-          fontSize: 18,
-          fontWeight: 'bold',
-          marginBottom: 8,
-          textTransform: 'uppercase',
-        }}
-      >
-        Add new encryption
-      </Text>
       <Body>
         <StyledInput label="Id" value={data?.id} editable={false} />
         <StyledInput label="Name" value={data?.name} editable={false} />
         <StyledInput label="User" value={data?.user} editable={false} />
-        <StyledInput
-          label="Value"
-          placeholder="Type value to encrypt"
-          secureTextEntry={!display}
-          rightIcon={
-            <Image
-              source={display ? eyeHidden : eyeVisible}
-              style={{ height: 18, width: 18, alignSelf: 'center' }}
-            />
-          }
-          value={display3 ? decryptText(data?.value ?? '', key)! : data?.value}
-          onClickRight={() => setDisplay((v) => !v)}
-          editable={false}
-        />
+        <View style={{ flexDirection: 'row', gap: 3, alignItems: 'center' }}>
+          <StyledInput
+            label="Value"
+            placeholder="Type value to encrypt"
+            secureTextEntry={!display}
+            rightIcon={
+              <Image
+                source={display ? eyeHidden : eyeVisible}
+                style={{ height: 18, width: 18, alignSelf: 'center' }}
+              />
+            }
+            containerStyle={{ flex: 1 }}
+            value={
+              display3 ? decryptText(data?.value ?? '', key)! : data?.value
+            }
+            onClickRight={() => setDisplay((v) => !v)}
+            editable={false}
+          />
+          <TouchableOpacity
+            onPress={() =>
+              !!(display3
+                ? decryptText(data?.value ?? '', key)!
+                : data?.value) &&
+              copyToClipboard(
+                display3 ? decryptText(data?.value ?? '', key)! : data?.value!
+              )
+            }
+          >
+            <Text style={{ textAlign: 'center', marginTop: 14 }}>Copy</Text>
+          </TouchableOpacity>
+        </View>
         <StyledInput
           label="Pass Key"
           placeholder="Enter Pass Key"
@@ -89,13 +97,13 @@ export default function DisplayScreen() {
   )
 }
 
-const Container = styled(SafeAreaView)({
+const Container = styled(ScrollView)({
   background: '#D9D9D9',
-  height: '100%',
-  padding: 24,
 })
 const Body = styled(View)({
   flexDirection: 'column',
   flex: 1,
   gap: 8,
+  height: '100%',
+  padding: 24,
 })

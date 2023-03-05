@@ -1,7 +1,5 @@
 import CryptoJS from 'crypto-js'
 
-CryptoJS.SHA256('dwadaw')
-
 export const encryptText = (value: string, pKey: string) => {
   const salt = CryptoJS.lib.WordArray.random(128 / 8)
   const iv = CryptoJS.lib.WordArray.random(128 / 8)

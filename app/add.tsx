@@ -1,7 +1,7 @@
 import React from 'react'
 import { Formik } from 'formik'
 import { useState } from 'react'
-import { View, SafeAreaView, Image, Text } from 'react-native'
+import { View, ScrollView, Image, Text } from 'react-native'
 import styled from 'styled-components/native'
 import { eyeHidden, eyeVisible } from '../assets/icons'
 import { StyledButton } from '../components/StyledButton'
@@ -13,6 +13,11 @@ import * as Yup from 'yup'
 import { encryptText } from '../lib'
 import { EncrpytState } from '../redux/slices/enrpytionsSlice'
 import { useRouter } from 'expo-router'
+import { generatePassword } from '../lib/pass-gen'
+import { TouchableOpacity } from 'react-native-gesture-handler'
+import { useLocalSearchParams } from 'expo-router'
+
+import { faker } from '@faker-js/faker'
 
 const EncryptSchema = Yup.object().shape({
   name: Yup.string().trim().required('Required'),
@@ -25,6 +30,7 @@ const EncryptSchema = Yup.object().shape({
 })
 
 export default function AddEncryptScreen() {
+  const { password } = useLocalSearchParams()
   const { back } = useRouter()
   const dispatch = useAppDispatch()
   const [display, setDisplay] = useState(false)
@@ -32,23 +38,13 @@ export default function AddEncryptScreen() {
   const [display3, setDisplay3] = useState(false)
   return (
     <Container>
-      <Text
-        style={{
-          fontSize: 18,
-          fontWeight: 'bold',
-          marginBottom: 8,
-          textTransform: 'uppercase',
-        }}
-      >
-        Add new encryption
-      </Text>
       <Body>
         <Formik<EncrpytState & { key: string; confirm: string }>
           initialValues={{
             id: uuidv4(),
             user: '',
             name: '',
-            value: '',
+            value: password ?? '',
             key: '',
             confirm: '',
           }}
@@ -92,21 +88,61 @@ export default function AddEncryptScreen() {
                 onChangeText={(v) => setFieldValue('user', v)}
                 error={errors.user}
               />
-              <StyledInput
-                label="Value to encrypt"
-                placeholder="Type value to encrypt"
-                secureTextEntry={!display3}
-                rightIcon={
-                  <Image
-                    source={display3 ? eyeHidden : eyeVisible}
-                    style={{ height: 18, width: 18, alignSelf: 'center' }}
-                  />
-                }
-                value={values.value}
-                onChangeText={(v) => setFieldValue('value', v)}
-                onClickRight={() => setDisplay3((v) => !v)}
-                error={errors.value}
-              />
+              <View style={{ flexDirection: 'column', gap: 2 }}>
+                <StyledInput
+                  label="Value to encrypt"
+                  placeholder="Type value to encrypt"
+                  secureTextEntry={!display3}
+                  rightIcon={
+                    <Image
+                      source={display3 ? eyeHidden : eyeVisible}
+                      style={{ height: 18, width: 18, alignSelf: 'center' }}
+                    />
+                  }
+                  value={values.value}
+                  onChangeText={(v) => setFieldValue('value', v)}
+                  onClickRight={() => setDisplay3((v) => !v)}
+                  error={errors.value}
+                />
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignSelf: 'flex-end',
+                    alignItems: 'flex-end',
+                    justifyContent: 'flex-end',
+                  }}
+                >
+                  <TouchableOpacity
+                    style={{
+                      width: 70,
+                      alignSelf: 'flex-end',
+                      justifyContent: 'flex-end',
+                      alignItems: 'flex-end',
+                    }}
+                    onPress={() =>
+                      setFieldValue(
+                        'value',
+                        generatePassword(
+                          [
+                            (values.name ||
+                              faker.internet.password(8)) as string,
+                            (values.user ||
+                              faker.internet.password(8)) as string,
+                            faker.internet.password(8) as string,
+                            faker.internet.password(8) as string,
+                            faker.internet.password(8) as string,
+                            new Date().getSeconds(),
+                            Math.floor(Math.random() * 60),
+                          ],
+                          1
+                        )[0]
+                      )
+                    }
+                  >
+                    <Text style={{ fontWeight: 'bold' }}>Generate</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
               <StyledInput
                 label="Pass Key"
                 placeholder="Enter Pass Key"
@@ -153,13 +189,13 @@ export default function AddEncryptScreen() {
   )
 }
 
-const Container = styled(SafeAreaView)({
+const Container = styled(ScrollView)({
   background: '#D9D9D9',
-  height: '100%',
-  padding: 24,
 })
 const Body = styled(View)({
   flexDirection: 'column',
   flex: 1,
   gap: 8,
+  height: '100%',
+  padding: 24,
 })

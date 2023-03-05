@@ -1,12 +1,12 @@
-import React, { useEffect } from 'react'
-import { Tabs, useNavigation, useRouter } from 'expo-router'
-import { useColorScheme, Image, BackHandler } from 'react-native'
+import React from 'react'
+import { Tabs, useRouter } from 'expo-router'
+import { useColorScheme, Image, TouchableOpacity } from 'react-native'
 import { encrypted, shield } from '../../assets/icons'
 import { logo } from '../../assets/logo'
+import Ionicons from '@expo/vector-icons/Ionicons'
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme()
-  const v = useNavigation()
+  const { push } = useRouter()
 
   return (
     <Tabs
@@ -21,6 +21,7 @@ export default function TabLayout() {
         ),
         headerLeftLabelVisible: true,
         headerLeftContainerStyle: { marginLeft: 10 },
+        headerRightContainerStyle: { marginRight: 10 },
         headerBackground: (v) => null,
         headerBackgroundContainerStyle: { backgroundColor: '#D9D9D9' },
         headerTintColor: 'black',
@@ -37,6 +38,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="manager"
         options={{
+          title: 'Manager',
           tabBarIcon: ({ color }) => (
             <Image
               source={encrypted}
@@ -46,8 +48,14 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="generator"
         options={{
+          title: 'Generator',
+          headerRight: () => (
+            <TouchableOpacity onPress={() => push('/gen-settings')}>
+              <Ionicons name="settings" color="black" size={28} />
+            </TouchableOpacity>
+          ),
           tabBarIcon: ({ color }) => (
             <Image
               source={shield}

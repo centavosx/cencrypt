@@ -4,17 +4,19 @@ import {
   TextInputProps,
   View,
   TouchableOpacity,
+  ViewStyle,
   Text,
 } from 'react-native'
 import styled from 'styled-components/native'
 
-type OtherProps = {
+export type OtherProps = {
   label?: string
   rightIcon?: ReactNode
   leftIcon?: ReactNode
   onClickLeft?: () => void
   onClickRight?: () => void
   error?: string
+  containerStyle?: ViewStyle
 }
 
 export const StyledInput = ({
@@ -24,10 +26,11 @@ export const StyledInput = ({
   onClickLeft,
   onClickRight,
   error,
+  containerStyle,
   ...other
 }: TextInputProps & OtherProps) => {
   return (
-    <Container>
+    <Container style={containerStyle}>
       {label && (
         <Text style={{ marginLeft: 2, fontWeight: 'bold' }} numberOfLines={1}>
           {label}
