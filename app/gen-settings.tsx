@@ -103,7 +103,10 @@ export default function GenDisplayScreen() {
                 }
                 key={v}
                 unique={v}
-                value={values[v]?.toString() ?? undefined}
+                value={
+                  values[v as keyof GeneratorSettingsState]?.toString() ??
+                  undefined
+                }
                 keyboardType={
                   v === 'phrase6' ||
                   v === 'phrase7' ||
@@ -113,7 +116,7 @@ export default function GenDisplayScreen() {
                 }
                 isNotPassword={v === 'numberOfGenerated'}
                 onChangeText={(value) => setFieldValue(v, value)}
-                error={errors[v]}
+                error={errors[v as keyof GeneratorSettingsState]}
               />
             ))}
             <StyledButton

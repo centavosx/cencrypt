@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { createContext, useCallback, useState } from 'react'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 import {
   DarkTheme,
@@ -15,11 +15,26 @@ import { PersistGate } from 'redux-persist/integration/react'
 import * as LocalAuthentication from 'expo-local-authentication'
 import { UserProvider } from '../context/user.context'
 import { usePreventScreenCapture } from 'expo-screen-capture'
+import { useApi } from '../hooks'
+import { me } from '../api'
+import { User } from '../entities'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useContext } from 'react'
 
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router'
+
+type DataType = {
+  user: User | null
+  refetch: () => void
+  logout: () => void
+}
+
+export const AuthContext = createContext<DataType>({} as DataType)
+
+export const useUser = () => useContext(AuthContext)
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -27,6 +42,12 @@ export default function RootLayout() {
     ...FontAwesome.font,
   })
   const [authenticated, setAuthenticated] = useState<boolean>()
+  const { data, refetch, isFetching, error: e } = useApi<User, any>(me)
+
+  const logout = useCallback(async () => {
+    await AsyncStorage.clear()
+    refetch()
+  }, [refetch])
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
@@ -49,6 +70,13 @@ export default function RootLayout() {
     if (authenticated === undefined && loaded) auth()
   }, [authenticated, loaded, setAuthenticated])
 
+  const provider: DataType = {
+    user: data,
+
+    refetch,
+    logout,
+  }
+
   if (authenticated === false) {
     exitApp()
     return (
@@ -68,12 +96,22 @@ export default function RootLayout() {
     )
   }
 
-  if (!loaded || authenticated === undefined) return <SplashScreen />
-  return <RootLayoutNav />
+  if (
+    !loaded ||
+    authenticated === undefined ||
+    (authenticated === undefined && isFetching)
+  )
+    return <SplashScreen />
+  return (
+    <AuthContext.Provider value={provider}>
+      <RootLayoutNav />
+    </AuthContext.Provider>
+  )
 }
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme()
+  const { user } = useUser()
   return (
     <Provider store={store}>
       <PersistGate persistor={persistor} loading={null}>
@@ -88,6 +126,7 @@ function RootLayoutNav() {
                 ) : (
                   <Stack.Screen name="home" options={{ headerShown: false }} />
                 )}
+
                 {isLoggedIn && (
                   <Stack.Screen
                     name="add"
@@ -112,6 +151,26 @@ function RootLayoutNav() {
                     options={{
                       presentation: 'modal',
                       headerTitle: 'Generator Settings',
+                    }}
+                  />
+                )}
+
+                {!user && (
+                  <Stack.Screen
+                    name="register"
+                    options={{
+                      presentation: 'modal',
+                      headerTitle: 'Register',
+                    }}
+                  />
+                )}
+
+                {!user && (
+                  <Stack.Screen
+                    name="login"
+                    options={{
+                      presentation: 'modal',
+                      headerTitle: 'Login',
                     }}
                   />
                 )}

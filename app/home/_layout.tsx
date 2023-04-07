@@ -1,7 +1,7 @@
 import React from 'react'
 import { Tabs, useRouter } from 'expo-router'
-import { useColorScheme, Image, TouchableOpacity } from 'react-native'
-import { encrypted, shield } from '../../assets/icons'
+import { Image, TouchableOpacity } from 'react-native'
+import { encrypted, meIcon, shield } from '../../assets/icons'
 import { logo } from '../../assets/logo'
 import Ionicons from '@expo/vector-icons/Ionicons'
 
@@ -59,6 +59,18 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <Image
               source={shield}
+              style={{ tintColor: color, height: 28, width: 28 }}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="user"
+        options={{
+          title: 'Me',
+          tabBarIcon: ({ color }) => (
+            <Image
+              source={meIcon}
               style={{ tintColor: color, height: 28, width: 28 }}
             />
           ),
