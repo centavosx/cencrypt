@@ -13,11 +13,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import passwordSlice from './slices/passwordSlice'
 import genSettingsSlice from './slices/genSettingsSlice'
 import enrpytionsSlice from './slices/enrpytionsSlice'
+import accountSettingsSlice from './slices/accountSettingsSlice'
 
 const rootReducer = combineReducers({
   password: passwordSlice,
   encryptValues: enrpytionsSlice,
   generator: genSettingsSlice,
+  accountSettings: accountSettingsSlice,
 })
 
 const persistConfig = {

@@ -80,7 +80,8 @@ apiAuth.interceptors.response.use(
 
     // clear out all tokens if we get unauthorized error and force user to login
     if (error?.response?.status === 401) {
-      await AsyncStorage.clear()
+      await AsyncStorage.removeItem('accessToken')
+      await AsyncStorage.removeItem('refreshToken')
     }
 
     return Promise.reject(error)

@@ -17,6 +17,7 @@ export type OtherProps = {
   onClickRight?: () => void
   error?: string
   containerStyle?: ViewStyle
+  variant?: 'primary' | 'secondary'
 }
 
 export const StyledInput = ({
@@ -27,16 +28,31 @@ export const StyledInput = ({
   onClickRight,
   error,
   containerStyle,
+  variant,
+  style,
+  placeholderTextColor,
   ...other
 }: TextInputProps & OtherProps) => {
+  const variantStyle =
+    !variant || variant === 'primary' ? 'primary' : 'secondary'
+
   return (
     <Container style={containerStyle}>
       {label && (
-        <Text style={{ marginLeft: 2, fontWeight: 'bold' }} numberOfLines={1}>
+        <Text
+          style={{
+            marginLeft: 2,
+            fontWeight: 'bold',
+            color: variant === 'secondary' ? 'white' : 'black',
+          }}
+          numberOfLines={1}
+        >
           {label}
         </Text>
       )}
-      <InputContainer>
+      <InputContainer
+        style={{ borderColor: variant === 'secondary' ? 'white' : 'black' }}
+      >
         {!!leftIcon && onClickLeft ? (
           <TouchableOpacity
             onPress={onClickLeft}
@@ -47,7 +63,18 @@ export const StyledInput = ({
         ) : (
           leftIcon
         )}
-        <Input {...other} />
+        <Input
+          placeholderTextColor={
+            placeholderTextColor ?? variantStyle === 'secondary'
+              ? 'rgba(255,255,255,0.5)'
+              : undefined
+          }
+          style={{
+            color: variant === 'secondary' ? 'white' : 'black',
+            ...style,
+          }}
+          {...other}
+        />
         {!!rightIcon && onClickRight ? (
           <TouchableOpacity
             onPress={onClickRight}

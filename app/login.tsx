@@ -1,4 +1,4 @@
-import { Formik, FormikProps } from 'formik'
+import React, { Formik, FormikProps } from 'formik'
 
 import {
   View,
@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from 'react-native'
 import styled from 'styled-components/native'
 import { eyeHidden, eyeVisible } from '../assets/icons'
@@ -24,6 +25,10 @@ import { useRef } from 'react'
 import { useEffect } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useRouter } from 'expo-router'
+import { useSelector } from 'react-redux'
+import { selectAccountSettings } from '../redux/slices/accountSettingsSlice'
+import { useAppDispatch } from '../redux/dispatch'
+import { resetEncrypt } from '../redux/slices/enrpytionsSlice'
 
 const LoginSchema = Yup.object().shape({
   email: Yup.string().trim().email().required('Required'),
@@ -40,6 +45,27 @@ export default function LoginScreen() {
     error,
   } = useApi<Token, LoginDto>(login, true)
   const [display, setDisplay] = useState(false)
+  const settings = useSelector(selectAccountSettings)
+  const dispatch = useAppDispatch()
+
+  const askToDelete = () => {
+    Alert.alert(
+      'Remove current data?',
+      'Do you want to delete current saved passwords?',
+      [
+        {
+          text: 'Yes',
+          onPress: () => {
+            dispatch(resetEncrypt(undefined))
+          },
+        },
+        {
+          text: 'No',
+          style: 'cancel',
+        },
+      ]
+    )
+  }
 
   useEffect(() => {
     const loginUser = async (accessToken: string, refreshToken: string) => {
@@ -51,6 +77,11 @@ export default function LoginScreen() {
     if (!!data) {
       alert('Login Success')
       loginUser(data.accessToken, data.refreshToken)
+      if (settings.autoDelete) {
+        dispatch(resetEncrypt(undefined))
+      } else {
+        askToDelete()
+      }
     }
 
     if (!!error) {
@@ -60,7 +91,7 @@ export default function LoginScreen() {
     if (!isFetching) {
       ref.current?.setSubmitting(false)
     }
-  }, [isFetching, data, relogin, error])
+  }, [isFetching, data, relogin, error, settings])
 
   useEffect(() => {
     if (!!user) {
@@ -110,8 +141,8 @@ export default function LoginScreen() {
                   error={errors?.email}
                 />
                 <StyledInput
-                  label="Confirm"
-                  placeholder="Confirm your password"
+                  label="Password"
+                  placeholder="Enter your password"
                   secureTextEntry={!display}
                   rightIcon={
                     <Image

@@ -1,12 +1,14 @@
 import React from 'react'
 import { Tabs, useRouter } from 'expo-router'
-import { Image, TouchableOpacity } from 'react-native'
+import { Image, TouchableOpacity, Text } from 'react-native'
 import { encrypted, meIcon, shield } from '../../assets/icons'
 import { logo } from '../../assets/logo'
 import Ionicons from '@expo/vector-icons/Ionicons'
+import { useUser } from '../_layout'
 
 export default function TabLayout() {
   const { push } = useRouter()
+  const { user, logout } = useUser()
 
   return (
     <Tabs
@@ -68,6 +70,11 @@ export default function TabLayout() {
         name="user"
         options={{
           title: 'Me',
+          headerRight: () => (
+            <TouchableOpacity onPress={!!user ? logout : () => push('/login')}>
+              <Text>{!!user ? 'Logout' : 'Login'}</Text>
+            </TouchableOpacity>
+          ),
           tabBarIcon: ({ color }) => (
             <Image
               source={meIcon}

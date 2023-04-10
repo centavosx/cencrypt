@@ -1,4 +1,4 @@
-import { createContext, useCallback, useState } from 'react'
+import React, { createContext, useCallback, useState } from 'react'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 import {
   DarkTheme,
@@ -8,7 +8,7 @@ import {
 import { useFonts } from 'expo-font'
 import { SplashScreen, Stack } from 'expo-router'
 import { useEffect } from 'react'
-import { useColorScheme, BackHandler, View, Text, Platform } from 'react-native'
+import { useColorScheme, BackHandler, View, Text } from 'react-native'
 import { Provider } from 'react-redux'
 import { persistor, store } from '../redux/store'
 import { PersistGate } from 'redux-persist/integration/react'
@@ -45,7 +45,8 @@ export default function RootLayout() {
   const { data, refetch, isFetching, error: e } = useApi<User, any>(me)
 
   const logout = useCallback(async () => {
-    await AsyncStorage.clear()
+    await AsyncStorage.removeItem('accessToken')
+    await AsyncStorage.removeItem('refreshToken')
     refetch()
   }, [refetch])
 

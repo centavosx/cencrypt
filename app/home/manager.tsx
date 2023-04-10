@@ -1,6 +1,6 @@
-import React from 'react'
-import { useRouter, Link } from 'expo-router'
-
+import React, { useEffect } from 'react'
+import { useRouter, Link, Tabs } from 'expo-router'
+import Ionicons from '@expo/vector-icons/Ionicons'
 import {
   Text,
   TouchableOpacity,
@@ -17,10 +17,18 @@ import { useSelector } from 'react-redux'
 import {
   selectEncrypt,
   encryptRemoveById,
+  syncEncrypted,
 } from '../../redux/slices/enrpytionsSlice'
 import { Swipe } from '../../components/Swipe'
 import { Swipeable } from 'react-native-gesture-handler'
 import { useAppDispatch } from '../../redux/dispatch'
+import { useUser } from '../_layout'
+import { useApi } from '../../hooks'
+import { deleteData, getSyncedData, synchronize } from '../../api'
+import { Protected } from '../../entities'
+import { decryptText, encryptText } from '../../lib'
+import { selectAccountSettings } from '../../redux/slices/accountSettingsSlice'
+import { useIsFocused } from '@react-navigation/native'
 
 const renderRightActions = (
   progress: Animated.AnimatedInterpolation<any>,
@@ -45,8 +53,34 @@ export default function PasswordScreen() {
   const encrypted = useSelector(selectEncrypt)
   const dispatch = useAppDispatch()
   const navigation = useRouter()
+  const settings = useSelector(selectAccountSettings)
+  const isFocused = useIsFocused()
 
-  const alertRemove = (id: string, swipe: Swipeable | null) => {
+  const { user } = useUser()
+  const {
+    refetch: post,
+    data,
+    isFetching,
+    error,
+  } = useApi<Protected[], Protected[]>(synchronize, true)
+
+  const {
+    refetch: refetchData,
+    data: synced,
+    isFetching: isGettingData,
+  } = useApi<Protected[]>(getSyncedData, true)
+
+  const {
+    refetch: deletePassword,
+    status,
+    isFetching: isDeletingData,
+  } = useApi<Protected[]>(deleteData, true)
+
+  const alertRemove = (
+    id: string,
+    swipe: Swipeable | null,
+    dataId?: string | null
+  ) => {
     Alert.alert(
       'Delete Password',
       'Are you sure to delete this password? Note: Once deleted it will never be retrieved again',
@@ -55,6 +89,8 @@ export default function PasswordScreen() {
           text: 'Delete',
           onPress: () => {
             dispatch(encryptRemoveById(id))
+            if (settings?.autoSync === true || settings?.autoSync === 'true')
+              deletePassword(dataId)
             swipe?.close()
           },
         },
@@ -67,8 +103,72 @@ export default function PasswordScreen() {
     )
   }
 
+  useEffect(() => {
+    if (!!synced && !!user?.key) {
+      dispatch(
+        syncEncrypted(
+          synced.map((v) => ({
+            dataId: v.id as string,
+            name: v.name,
+            user: v.userName,
+            value: decryptText(v.value, user?.key!) as string,
+          }))
+        )
+      )
+    }
+  }, [synced, dispatch])
+
+  useEffect(() => {
+    if (!!data || !!error) {
+      refetchData()
+    }
+  }, [data, error, refetchData])
+
+  const synchronizeData = () => {
+    if (!isDeletingData)
+      post(
+        encrypted.map((v) => ({
+          id: v.dataId ?? undefined,
+          name: v.name,
+          userName: v.user,
+          value: encryptText(v.value, user?.key!),
+        }))
+      )
+  }
+
+  useEffect(() => {
+    if (
+      (settings?.autoSync === true || settings?.autoSync === 'true') &&
+      isFocused
+    ) {
+      synchronizeData()
+    }
+  }, [settings, status, isFocused])
+
   return (
     <Container>
+      <Tabs.Screen
+        options={{
+          headerRight: () =>
+            !!user && (
+              <TouchableOpacity
+                onPress={synchronizeData}
+                disabled={isFetching || isGettingData}
+              >
+                {isFetching || isGettingData || isDeletingData ? (
+                  <Text>Loading</Text>
+                ) : (
+                  <Ionicons
+                    name="sync-circle-outline"
+                    color="black"
+                    size={28}
+                  />
+                )}
+              </TouchableOpacity>
+            ),
+        }}
+      />
+
       {encrypted.length === 0 ? (
         <View style={{ alignSelf: 'center', justifyContent: 'center' }}>
           <NoteText>
@@ -82,10 +182,23 @@ export default function PasswordScreen() {
           renderItem={({ item }) => (
             <Swipe
               key={item.id}
-              renderRightActions={renderRightActions}
-              onSwipeableRightOpen={(s) => alertRemove(item.id, s)}
+              {...((isFetching || isGettingData || isDeletingData) &&
+              !item.dataId
+                ? {}
+                : {
+                    renderRightActions: renderRightActions,
+                    onSwipeableRightOpen: (s) =>
+                      alertRemove(item.id, s, item.dataId),
+                  })}
             >
-              <Card onPress={() => navigation.push('/display?id=' + item.id)}>
+              <Card
+                onPress={
+                  (isFetching || isGettingData || isDeletingData) &&
+                  !item.dataId
+                    ? undefined
+                    : () => navigation.push('/display?id=' + item.id)
+                }
+              >
                 <Image source={logo} />
                 <CardBody>
                   <TextAndId text={item.name} id={item.id} />
