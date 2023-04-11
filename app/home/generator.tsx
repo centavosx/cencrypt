@@ -5,7 +5,7 @@ import styled from 'styled-components/native'
 import { StyledButton } from '../../components/StyledButton'
 import { useGenerate } from '../../hooks'
 import { copyToClipboard } from '../../lib'
-import { Link, useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 
 export default function GeneratorScreen() {
   const { generated, refresh } = useGenerate()

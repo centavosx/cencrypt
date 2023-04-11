@@ -9,6 +9,7 @@ export interface EncrpytState {
   user: string
   name: string
   value: string
+  uid?: string | null
 }
 
 const initialState: EncrpytState[] = []
@@ -17,8 +18,9 @@ export const encrpytSlice = createSlice({
   name: 'encryptValues',
   initialState,
   reducers: {
-    resetEncrypt: (_, __) => {
-      return []
+    resetEncrypt: (state, __) => {
+      state = []
+      return state
     },
     addEncrypt: (state, action: PayloadAction<EncrpytState>) => {
       state = [...state, action.payload]
@@ -36,15 +38,17 @@ export const encrpytSlice = createSlice({
           user: string
           name: string
           value: string
+          uid: string
         }[]
       >
     ) => {
-      return action.payload.map((v) => {
+      state = action.payload.map((v) => {
         const data: EncrpytState | null | undefined = state.find(
           (s) => s.dataId === v.dataId
         )
         return { ...v, id: !!data ? data.id : uuidv4() }
       })
+      return state
     },
     encryptUpdate: (
       state,
@@ -69,6 +73,10 @@ export const encrpytSlice = createSlice({
 
       return state
     },
+    removeDataId: (state) => {
+      state = state.map((v) => ({ ...v, dataId: undefined }))
+      return state
+    },
   },
 })
 
@@ -78,6 +86,7 @@ export const {
   encryptUpdate,
   syncEncrypted,
   resetEncrypt,
+  removeDataId,
 } = encrpytSlice.actions
 
 // Other code such as selectors can use the imported `RootState` type

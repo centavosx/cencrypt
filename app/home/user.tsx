@@ -219,7 +219,12 @@ const UserView = () => {
             <WhiteText numberOfLines={1}>ID</WhiteText>
             <WhiteText
               numberOfLines={1}
-              style={{ opacity: 0.5, textAlign: 'right', flex: 1 }}
+              style={{
+                opacity: 0.5,
+                textAlign: 'right',
+                flex: 1,
+                fontSize: 11,
+              }}
             >
               {user.id}
             </WhiteText>
@@ -232,6 +237,7 @@ const UserView = () => {
                 opacity: 0.5,
                 textAlign: 'right',
                 flex: 1,
+                fontSize: 11,
               }}
             >
               {user.firstName}
@@ -241,7 +247,12 @@ const UserView = () => {
             <WhiteText numberOfLines={1}>Last name</WhiteText>
             <WhiteText
               numberOfLines={1}
-              style={{ opacity: 0.5, textAlign: 'right', flex: 1 }}
+              style={{
+                opacity: 0.5,
+                textAlign: 'right',
+                flex: 1,
+                fontSize: 11,
+              }}
             >
               {user.lastName}
             </WhiteText>
@@ -250,7 +261,12 @@ const UserView = () => {
             <WhiteText numberOfLines={1}>Email</WhiteText>
             <WhiteText
               numberOfLines={1}
-              style={{ opacity: 0.5, textAlign: 'right', flex: 1 }}
+              style={{
+                opacity: 0.5,
+                textAlign: 'right',
+                flex: 1,
+                fontSize: 11,
+              }}
             >
               {user.email}
             </WhiteText>

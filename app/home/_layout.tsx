@@ -5,10 +5,18 @@ import { encrypted, meIcon, shield } from '../../assets/icons'
 import { logo } from '../../assets/logo'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useUser } from '../_layout'
+import { useAppDispatch } from '../../redux/dispatch'
+import { removeDataId } from '../../redux/slices/enrpytionsSlice'
 
 export default function TabLayout() {
   const { push } = useRouter()
   const { user, logout } = useUser()
+  const dispatch = useAppDispatch()
+
+  const logoutUser = () => {
+    dispatch(removeDataId())
+    logout()
+  }
 
   return (
     <Tabs
@@ -71,7 +79,9 @@ export default function TabLayout() {
         options={{
           title: 'Me',
           headerRight: () => (
-            <TouchableOpacity onPress={!!user ? logout : () => push('/login')}>
+            <TouchableOpacity
+              onPress={!!user ? logoutUser : () => push('/login')}
+            >
               <Text>{!!user ? 'Logout' : 'Login'}</Text>
             </TouchableOpacity>
           ),

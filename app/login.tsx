@@ -48,7 +48,7 @@ export default function LoginScreen() {
   const settings = useSelector(selectAccountSettings)
   const dispatch = useAppDispatch()
 
-  const askToDelete = () => {
+  const askToDelete = (cb: () => void) => {
     Alert.alert(
       'Remove current data?',
       'Do you want to delete current saved passwords?',
@@ -57,11 +57,15 @@ export default function LoginScreen() {
           text: 'Yes',
           onPress: () => {
             dispatch(resetEncrypt(undefined))
+            cb()
           },
         },
         {
           text: 'No',
           style: 'cancel',
+          onPress: () => {
+            cb()
+          },
         },
       ]
     )
@@ -75,23 +79,27 @@ export default function LoginScreen() {
     }
 
     if (!!data) {
-      alert('Login Success')
       loginUser(data.accessToken, data.refreshToken)
       if (settings.autoDelete) {
         dispatch(resetEncrypt(undefined))
+        Alert.alert('Login', 'Login Successful!!!')
       } else {
-        askToDelete()
+        askToDelete(() => Alert.alert('Login', 'Login Successful!!!'))
       }
+      return
     }
 
     if (!!error) {
-      alert('Login failed')
+      Alert.alert('Login', 'Login failed!!!')
+      return
     }
+  }, [data, relogin, error, settings])
 
+  useEffect(() => {
     if (!isFetching) {
       ref.current?.setSubmitting(false)
     }
-  }, [isFetching, data, relogin, error, settings])
+  }, [isFetching])
 
   useEffect(() => {
     if (!!user) {

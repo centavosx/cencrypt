@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from 'react-native'
 import styled from 'styled-components/native'
 import { eyeHidden, eyeVisible } from '../assets/icons'
@@ -62,11 +63,11 @@ export default function RegisterScreen() {
 
   useEffect(() => {
     if (!!data) {
-      alert('Register success')
+      Alert.alert('Register', 'Register successful!!!')
       replace('/login')
     }
     if (!!error) {
-      alert('Register failed')
+      Alert.alert('Register', 'Register failed!!!')
     }
   }, [data, error])
 

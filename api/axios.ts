@@ -64,7 +64,9 @@ apiAuth.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config
-    const hasErrored = error.response && error.response.status === 403
+    const hasErrored =
+      error.response &&
+      (error.response.status === 403 || error.response.status === 401)
 
     if (hasErrored && originalRequest && !originalRequest._markForRetry) {
       originalRequest._markForRetry = true
@@ -79,10 +81,10 @@ apiAuth.interceptors.response.use(
     }
 
     // clear out all tokens if we get unauthorized error and force user to login
-    if (error?.response?.status === 401) {
-      await AsyncStorage.removeItem('accessToken')
-      await AsyncStorage.removeItem('refreshToken')
-    }
+    // if (error?.response?.status === 401) {
+    //   await AsyncStorage.removeItem('accessToken')
+    //   await AsyncStorage.removeItem('refreshToken')
+    // }
 
     return Promise.reject(error)
   },

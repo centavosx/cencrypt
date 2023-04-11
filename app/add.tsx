@@ -69,12 +69,6 @@ export default function AddEncryptScreen() {
           {({ values, setFieldValue, errors, isSubmitting, submitForm }) => (
             <>
               <StyledInput
-                label="Id"
-                value={values.id}
-                onChangeText={(v) => setFieldValue('key', v)}
-                editable={false}
-              />
-              <StyledInput
                 label="Name"
                 placeholder="Type name of value to encrpyt"
                 value={values.name}
@@ -179,7 +173,7 @@ export default function AddEncryptScreen() {
                 onPress={() => submitForm()}
                 disabled={isSubmitting}
               >
-                Next
+                Add
               </StyledButton>
             </>
           )}

@@ -36,7 +36,9 @@ export default function DisplayScreen() {
   return (
     <Container>
       <Body>
-        <StyledInput label="Id" value={data?.id} editable={false} />
+        {data?.dataId && (
+          <StyledInput label="Id" value={data?.dataId} editable={false} />
+        )}
         <StyledInput label="Name" value={data?.name} editable={false} />
         <StyledInput label="User" value={data?.user} editable={false} />
         <View style={{ flexDirection: 'row', gap: 3, alignItems: 'center' }}>

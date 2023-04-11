@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useRouter, Link, Tabs } from 'expo-router'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import {
@@ -29,6 +29,7 @@ import { Protected } from '../../entities'
 import { decryptText, encryptText } from '../../lib'
 import { selectAccountSettings } from '../../redux/slices/accountSettingsSlice'
 import { useIsFocused } from '@react-navigation/native'
+import { StyledButton } from '../../components/StyledButton'
 
 const renderRightActions = (
   progress: Animated.AnimatedInterpolation<any>,
@@ -55,6 +56,7 @@ export default function PasswordScreen() {
   const navigation = useRouter()
   const settings = useSelector(selectAccountSettings)
   const isFocused = useIsFocused()
+  const [isAscending, setIsAscending] = useState(true)
 
   const { user } = useUser()
   const {
@@ -70,11 +72,9 @@ export default function PasswordScreen() {
     isFetching: isGettingData,
   } = useApi<Protected[]>(getSyncedData, true)
 
-  const {
-    refetch: deletePassword,
-    status,
-    isFetching: isDeletingData,
-  } = useApi<Protected[]>(deleteData, true)
+  const { refetch: deletePassword, isFetching: isDeletingData } = useApi<
+    Protected[]
+  >(deleteData, true)
 
   const alertRemove = (
     id: string,
@@ -104,14 +104,15 @@ export default function PasswordScreen() {
   }
 
   useEffect(() => {
-    if (!!synced && !!user?.key) {
+    if (!!synced && !!user?.key && !!user?.id) {
       dispatch(
         syncEncrypted(
           synced.map((v) => ({
             dataId: v.id as string,
             name: v.name,
             user: v.userName,
-            value: decryptText(v.value, user?.key!) as string,
+            value: decryptText(v.value, user?.key) as string,
+            uid: user.id,
           }))
         )
       )
@@ -125,15 +126,21 @@ export default function PasswordScreen() {
   }, [data, error, refetchData])
 
   const synchronizeData = () => {
-    if (!isDeletingData)
-      post(
-        encrypted.map((v) => ({
+    if (!isDeletingData && !!user?.key && !!user.id) {
+      const filtered = encrypted
+        .filter((v) => !v.dataId && v.uid !== user.id)
+        .map((v) => ({
           id: v.dataId ?? undefined,
           name: v.name,
           userName: v.user,
-          value: encryptText(v.value, user?.key!),
+          value: encryptText(v.value, user?.key),
         }))
-      )
+      if (filtered.length === 0) {
+        refetchData()
+        return
+      }
+      post(filtered)
+    }
   }
 
   useEffect(() => {
@@ -143,7 +150,17 @@ export default function PasswordScreen() {
     ) {
       synchronizeData()
     }
-  }, [settings, status, isFocused])
+  }, [settings, isFocused])
+
+  const sortedArray = useMemo(() => {
+    const newArray = [...encrypted]
+
+    newArray.sort((a, b) =>
+      isAscending ? (a.name < b.name ? -1 : 1) : a.name > b.name ? -1 : 1
+    )
+
+    return newArray
+  }, [encrypted, isAscending])
 
   return (
     <Container>
@@ -169,45 +186,71 @@ export default function PasswordScreen() {
         }}
       />
 
-      {encrypted.length === 0 ? (
-        <View style={{ alignSelf: 'center', justifyContent: 'center' }}>
+      {sortedArray.length === 0 ? (
+        <View
+          style={{
+            alignSelf: 'center',
+            justifyContent: 'center',
+            paddingHorizontal: 24,
+            flex: 1,
+          }}
+        >
           <NoteText>
             You don't have any saved passwords, click [ + ] below to save one.
           </NoteText>
         </View>
       ) : (
-        <FlatList
-          contentContainerStyle={{ flexDirection: 'column', gap: 12 }}
-          data={encrypted}
-          renderItem={({ item }) => (
-            <Swipe
-              key={item.id}
-              {...((isFetching || isGettingData || isDeletingData) &&
-              !item.dataId
-                ? {}
-                : {
-                    renderRightActions: renderRightActions,
-                    onSwipeableRightOpen: (s) =>
-                      alertRemove(item.id, s, item.dataId),
-                  })}
-            >
-              <Card
-                onPress={
-                  (isFetching || isGettingData || isDeletingData) &&
-                  !item.dataId
-                    ? undefined
-                    : () => navigation.push('/display?id=' + item.id)
-                }
+        <View
+          style={{
+            flexDirection: 'column',
+            gap: 8,
+            flex: 1,
+          }}
+        >
+          <StyledButton
+            variant="secondary"
+            style={{ width: 100, marginHorizontal: 24 }}
+            onPress={() => setIsAscending((v) => !v)}
+          >
+            {isAscending ? 'Sort: A-Z' : 'Sort: Z-A'}
+          </StyledButton>
+          <FlatList
+            contentContainerStyle={{
+              flexDirection: 'column',
+              gap: 12,
+              paddingHorizontal: 24,
+            }}
+            data={sortedArray}
+            renderItem={({ item }) => (
+              <Swipe
+                key={item.id}
+                {...((isFetching || isGettingData || isDeletingData) &&
+                !item.dataId
+                  ? {}
+                  : {
+                      renderRightActions: renderRightActions,
+                      onSwipeableRightOpen: (s) =>
+                        alertRemove(item.id, s, item.dataId),
+                    })}
               >
-                <Image source={logo} />
-                <CardBody>
-                  <TextAndId text={item.name} id={item.id} />
-                  <Text style={{ fontWeight: 'bold' }}>{item.user}</Text>
-                </CardBody>
-              </Card>
-            </Swipe>
-          )}
-        />
+                <Card
+                  onPress={
+                    (isFetching || isGettingData || isDeletingData) &&
+                    !item.dataId
+                      ? undefined
+                      : () => navigation.push('/display?id=' + item.id)
+                  }
+                >
+                  <Image source={logo} />
+                  <CardBody>
+                    <TextAndId text={item.name} id={item?.dataId ?? ''} />
+                    <Text style={{ fontWeight: 'bold' }}>{item.user}</Text>
+                  </CardBody>
+                </Card>
+              </Swipe>
+            )}
+          />
+        </View>
       )}
       <AddEncrypt />
     </Container>
@@ -217,7 +260,8 @@ export default function PasswordScreen() {
 const TextAndId = ({ text, id }: { text: string; id: string }) => {
   return (
     <Text numberOfLines={1}>
-      <Text style={{ fontWeight: 'bold' }}>{text}</Text>:{' '}
+      <Text style={{ fontWeight: 'bold' }}>{text}</Text>
+      {!!id && ': '}
       <Text style={{ color: 'gray' }}>{id}</Text>
     </Text>
   )
@@ -225,31 +269,42 @@ const TextAndId = ({ text, id }: { text: string; id: string }) => {
 
 const AddEncrypt = () => {
   return (
-    <Link
-      href={'/add'}
-      style={{
-        height: 80,
-        width: 45,
-        bottom: 0,
-        zIndex: 1,
-        right: 2,
-        position: 'absolute',
-      }}
-    >
-      <Image
-        source={add}
+    <TouchableOpacity>
+      <Link
+        href={'/add'}
         style={{
-          height: 45,
+          height: 80,
           width: 45,
-          tintColor: 'white',
+          bottom: 0,
+          zIndex: 1,
+          right: 8,
+          position: 'absolute',
         }}
-      />
-    </Link>
+      >
+        <View
+          style={{
+            height: 45,
+            width: 45,
+            borderRadius: 200,
+            backgroundColor: 'black',
+          }}
+        >
+          <Image
+            source={add}
+            style={{
+              height: '100%',
+              width: '100%',
+              tintColor: 'white',
+            }}
+          />
+        </View>
+      </Link>
+    </TouchableOpacity>
   )
 }
 
 const Container = styled(View)({
-  padding: 24,
+  paddingVertical: 24,
   flexDirection: 'column',
   height: '100%',
   background: 'black',

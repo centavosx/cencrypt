@@ -100,12 +100,28 @@ export default function RootLayout() {
   if (
     !loaded ||
     authenticated === undefined ||
-    (authenticated === undefined && isFetching)
+    ((!loaded || authenticated === undefined) && isFetching)
   )
     return <SplashScreen />
   return (
     <AuthContext.Provider value={provider}>
       <RootLayoutNav />
+      {isFetching && (
+        <View
+          style={{
+            position: 'absolute',
+            flex: 1,
+            height: '100%',
+            width: '100%',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            zIndex: 999,
+          }}
+        >
+          <Text style={{ color: 'white' }}>Loading...</Text>
+        </View>
+      )}
     </AuthContext.Provider>
   )
 }

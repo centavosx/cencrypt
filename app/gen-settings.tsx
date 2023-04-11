@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import { useState } from 'react'
-import { View, ScrollView, Image, TextInputProps } from 'react-native'
+import { View, ScrollView, Image, TextInputProps, Alert } from 'react-native'
 import styled from 'styled-components/native'
 import { eyeHidden, eyeVisible } from '../assets/icons'
 import { StyledButton } from '../components/StyledButton'
@@ -15,6 +15,7 @@ import {
 } from '../redux/slices/genSettingsSlice'
 
 import * as Yup from 'yup'
+import { useRouter } from 'expo-router'
 
 const GenSettingsSchema = Yup.object().shape({
   numberOfGenerated: Yup.number()
@@ -59,6 +60,7 @@ const HideShowPassword = (
 export default function GenDisplayScreen() {
   const data = useAppSelector(selectGenSettings)
   const dispatch = useAppDispatch()
+  const { back } = useRouter()
 
   return (
     <Container>
@@ -86,6 +88,8 @@ export default function GenDisplayScreen() {
               : Number(values.numberOfGenerated),
           }
           dispatch(updateGenSettings(newValue))
+          Alert.alert('Settings', 'Saved!!!')
+          back()
         }}
       >
         {({ setFieldValue, values, submitForm, errors }) => (
